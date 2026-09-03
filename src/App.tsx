@@ -3,11 +3,29 @@ import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 
 function App() {
+  const [username, setUsername] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [game, setGame] = useState(new Chess());
   const [balance, setBalance] = useState(100.0);
   const [bet, setBet] = useState(5.0);
   const [inGame, setInGame] = useState(false);
   const [statusText, setStatusText] = useState('Welcome! Ready to play for $?');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    
+    if (username.toLowerCase() === 'admin') {
+      setIsAdmin(true);
+      setBalance(99999.0); // Admin perk
+      setStatusText('Welcome back, Admin 👑');
+    } else {
+      setStatusText(`Welcome, ${username}! Ready to play for $?`);
+    }
+    setIsLoggedIn(true);
+  };
 
   function makeRandomMove() {
     const possibleMoves = game.moves();
@@ -30,10 +48,10 @@ function App() {
       const move = newGame.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: 'q', // always promote to a queen for example simplicity
+        promotion: 'q',
       });
 
-      if (move === null) return false; // illegal move
+      if (move === null) return false;
 
       setGame(newGame);
       
@@ -78,6 +96,37 @@ function App() {
     setGame(new Chess());
     setInGame(true);
     setStatusText(`Game started. Bet: $${bet}`);
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center py-10 font-sans">
+        <div className="bg-[#151515] p-8 rounded-2xl border border-white/5 w-full max-w-md shadow-2xl">
+          <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Alvara Chess Arena
+          </h1>
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Enter Username</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                placeholder="e.g. admin"
+                autoFocus
+              />
+            </div>
+            <button 
+              type="submit"
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl transition-colors mt-2"
+            >
+              Enter Arena
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -152,8 +201,10 @@ function App() {
 
           <div className="w-full max-w-[500px] mt-6 flex justify-between items-center text-sm font-medium">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-400"></div>
-              <span>You (Guest)</span>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-400 flex items-center justify-center font-bold text-black text-xs">
+                {username.charAt(0).toUpperCase()}
+              </div>
+              <span>{isAdmin ? 'Admin 👑' : username}</span>
             </div>
             <div className="bg-black/50 px-3 py-1 rounded text-gray-400">05:00</div>
           </div>
